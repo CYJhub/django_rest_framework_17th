@@ -13,7 +13,7 @@ class Message(TimestampedModel):
     def __str__(self):
         return f'{self.sender}:{self.content}'
 
-class Board(models.Model):
+class Board(TimestampedModel):
     school_id = models.ForeignKey(School, on_delete=models.CASCADE)
 
     category = models.CharField(max_length=20)
@@ -24,7 +24,7 @@ class Board(models.Model):
         return self.name
 
 
-class My_board(models.Model):
+class My_board(TimestampedModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     board = models.ForeignKey(Board, on_delete=models.CASCADE)
 
@@ -49,7 +49,7 @@ class Post(TimestampedModel):
         return self.title
 
 
-class Post_media(models.Model):
+class Post_media(TimestampedModel):
     post = models.ForeignKey(Post,on_delete=models.CASCADE)
 
     def __str__(self):
@@ -68,7 +68,7 @@ class Comment(TimestampedModel):
     def __str__(self):
         return self.content
 
-class Scrap(models.Model):
+class Scrap(TimestampedModel):
     user = models.ForeignKey(User,on_delete=models.CASCADE)
     post = models.ForeignKey(Post,on_delete=models.CASCADE)
 

@@ -1,14 +1,15 @@
 from django.db import models
 from board.models import User, School
+from core.models import TimestampedModel
 
-class Friend(models.Model):
+class Friend(TimestampedModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=20)
 
     def __str__(self):
         return self.name
 
-class Timetable(models.Model):
+class Timetable(TimestampedModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     name = models.CharField(max_length=20,default= "시간표")
@@ -18,7 +19,7 @@ class Timetable(models.Model):
     def __str__(self):
         return self.name
 
-class Lecture(models.Model):
+class Lecture(TimestampedModel):
     school = models.ForeignKey(School, on_delete=models.CASCADE)
 
     name = models.CharField(max_length=30)
@@ -35,7 +36,7 @@ class Lecture(models.Model):
     def __str__(self):
         return self.name
 
-class My_lecture(models.Model):
+class My_lecture(TimestampedModel):
     lecture = models.ForeignKey(Lecture,on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     timetable = models.ForeignKey(Timetable, on_delete=models.CASCADE)
@@ -43,7 +44,7 @@ class My_lecture(models.Model):
     def __str__(self):
         return f'{self.user.name}:{self.lecture.name}'
 
-class Review(models.Model):
+class Review(TimestampedModel):
     lecture = models.ForeignKey(Lecture, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.PROTECT)
 
