@@ -40,7 +40,6 @@ class User(AbstractBaseUser,TimestampedModel):
     id = models.CharField("아이디", max_length= 20)
     password = models.CharField("비밀번호", max_length=128)
     email = models.EmailField("이메일", max_length=128, unique=True)
-    profile_image = models.ImageField(null=True)
     nickname = models.CharField("닉네임",max_length=20, unique= True)
     class_of = models.IntegerField("입학연도")
     name = models.CharField("이름",max_length=20)

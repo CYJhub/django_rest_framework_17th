@@ -1,17 +1,6 @@
 from django.db import models
 from account.models import School, User
-from board.models import Post
 from core.models import TimestampedModel
-
-class Message(TimestampedModel):
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
-    sender = models.ForeignKey(User, on_delete=models.PROTECT)
-    post = models.ForeignKey(Post, on_delete=models.PROTECT)
-
-    content = models.CharField(max_length= 500)
-
-    def __str__(self):
-        return f'{self.sender}:{self.content}'
 
 class Board(TimestampedModel):
     school_id = models.ForeignKey(School, on_delete=models.CASCADE)
@@ -22,15 +11,6 @@ class Board(TimestampedModel):
 
     def __str__(self):
         return self.name
-
-
-class My_board(TimestampedModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    board = models.ForeignKey(Board, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.board.name
-
 
 class Post(TimestampedModel):
     board = models.ForeignKey(Board, on_delete=models.CASCADE)
@@ -47,6 +27,27 @@ class Post(TimestampedModel):
 
     def __str__(self):
         return self.title
+
+
+class Message(TimestampedModel):
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    sender = models.ForeignKey(User, related_name='sender',on_delete=models.PROTECT)
+    post = models.ForeignKey(Post, on_delete=models.PROTECT)
+
+    content = models.CharField(max_length= 500)
+
+    def __str__(self):
+        return f'{self.sender}:{self.content}'
+
+
+
+class My_board(TimestampedModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    board = models.ForeignKey(Board, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.board.name
+
 
 
 class Post_media(TimestampedModel):
