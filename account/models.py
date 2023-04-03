@@ -33,6 +33,7 @@ class UserManager(TimestampedModel):
         user.is_admin = True
         user.save(using=self._db)
         return user
+
 class User(AbstractBaseUser,TimestampedModel):
     # 기본키
     user_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

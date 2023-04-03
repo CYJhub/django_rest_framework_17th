@@ -29,7 +29,7 @@ class Lecture(TimestampedModel):
     lecture_room = models.CharField(max_length=20)
     category = models.CharField(max_length=20)
     semester = models.CharField(max_length=20)
-    grade = models. IntegerField
+    grade = models.IntegerField
     credit = models.IntegerField
     capacity = models.IntegerField
 
@@ -49,7 +49,7 @@ class Review(TimestampedModel):
     user = models.ForeignKey(User, on_delete=models.PROTECT)
 
     semester = models.CharField(max_length=20)
-    content = models.CharField(max_length=500)
+    content = models.TextField(blank=False)
     star = models.IntegerField
     likeCnt = models.IntegerField
 

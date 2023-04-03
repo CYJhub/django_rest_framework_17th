@@ -17,7 +17,7 @@ class Post(TimestampedModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     title = models.CharField(max_length= 100, null= False)
-    content = models.CharField(max_length= 500, null= False)
+    content = models.TextField(blank=False)
     likeCnt = models.IntegerField(default=0)
     scrabCnt = models.IntegerField(default=0)
     commentCnt = models.IntegerField(default=0)
@@ -34,7 +34,7 @@ class Message(TimestampedModel):
     sender = models.ForeignKey(User, related_name='sender',on_delete=models.PROTECT)
     post = models.ForeignKey(Post, on_delete=models.PROTECT)
 
-    content = models.CharField(max_length= 500)
+    content = models.TextField(blank=False)
 
     def __str__(self):
         return f'{self.sender}:{self.content}'
@@ -61,7 +61,7 @@ class Comment(TimestampedModel):
     parent_comment = models.ForeignKey('self', on_delete=models.CASCADE, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
-    content = models.CharField(max_length=500)
+    content = models.TextField(blank=False)
     likeCnt = models.IntegerField(default=0)
     is_anonymous = models.BooleanField(default=True)
     is_delete = models.BooleanField(default=False)
