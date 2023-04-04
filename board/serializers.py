@@ -33,6 +33,7 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment #  models.py의 comment 사용
         fields = '__all__' # 모든 필드 포함
+
 class InCommentSerializer(serializers.ModelSerializer):
     parent_comment = CommentSerializer()
 
