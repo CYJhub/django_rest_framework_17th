@@ -36,7 +36,7 @@ class Lecture(TimestampedModel):
     def __str__(self):
         return self.name
 
-class My_lecture(TimestampedModel):
+class MyLecture(TimestampedModel):
     lecture = models.ForeignKey(Lecture,on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     timetable = models.ForeignKey(Timetable, on_delete=models.CASCADE)

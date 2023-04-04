@@ -28,7 +28,7 @@ class Post(TimestampedModel):
     def __str__(self):
         return self.title
 
-class My_board(TimestampedModel):
+class MyBoard(TimestampedModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     board = models.ForeignKey(Board, on_delete=models.CASCADE)
 
