@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'board',
     'timetable',
     'account',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
