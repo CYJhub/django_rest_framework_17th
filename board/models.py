@@ -28,33 +28,12 @@ class Post(TimestampedModel):
     def __str__(self):
         return self.title
 
-
-class Message(TimestampedModel):
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
-    sender = models.ForeignKey(User, related_name='sender',on_delete=models.PROTECT)
-    post = models.ForeignKey(Post, on_delete=models.PROTECT)
-
-    content = models.TextField(blank=False)
-
-    def __str__(self):
-        return f'{self.sender}:{self.content}'
-
-
-
 class My_board(TimestampedModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     board = models.ForeignKey(Board, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.board.name
-
-
-
-class Post_media(TimestampedModel):
-    post = models.ForeignKey(Post,on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.post.title
 
 class Comment(TimestampedModel):
     post = models.ForeignKey(Post,on_delete=models.CASCADE)
