@@ -15,7 +15,7 @@ class BoardList(APIView):
     def get(self, request):
 
         board_list = Board.objects.all()
-        serializer = BoardSerializer(board_list)
+        serializer = BoardSerializer(board_list, many=True)
 
         return HttpResponse(serializer.data)
 
