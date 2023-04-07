@@ -2,11 +2,11 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
-from .serializers import BoardSerializer
-from .models import Board
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse
 from rest_framework.response import Response
+from .serializers import BoardSerializer
+from .models import Board
 from rest_framework import viewsets
 from django_filters.rest_framework import FilterSet, filters
 from django_filters.rest_framework import DjangoFilterBackend
@@ -14,11 +14,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 '''
 class BoardList(APIView):
 
-    def get(self, request, format=None):  # 모든 게시판
+    def get(self, request, format=None):  
         try:
-            boardlists = Board.objects.all()
-            serializer = BoardSerializer(boardlists, many=True)
-            # 리스트로 반환하는 boardlists
+            board_list = Board.objects.all()
+            serializer = BoardSerializer(board_list, many=True)
             return Response(serializer.data)
         except AttributeError as e:
             print(e)
@@ -65,10 +64,8 @@ class BoardFilter(FilterSet):
         fields = ['name', 'school_id']
 
 
-
 class BoardViewSet(viewsets.ModelViewSet):
     serializer_class = BoardSerializer
     queryset = Board.objects.all()
     filter_backends = [DjangoFilterBackend]
-    filterset_class = BoardFilter
-
+    filter_set_class = BoardFilter
