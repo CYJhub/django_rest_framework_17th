@@ -1,15 +1,12 @@
-from django.urls import path
-from . import views
+from django.urls import path,include
 from rest_framework import routers
-# from .views import BoardListViewSet
+from .views import BoardViewSet
+
+
+router = routers.DefaultRouter()
+router.register('board', BoardViewSet)
 
 urlpatterns = [
-    path('', views.BoardList.as_view()),
-    path('<int:pk>/', views.BoardDetail.as_view()),
+    path('', include(router.urls)),
 ]
-'''
-router = routers.DefaultRouter()
-router.register(r'board', BoardListViewSet)   # register()함으로써 두 개의 url 생성
 
-urlpatterns = router.urls
-'''

@@ -8,6 +8,7 @@ class School(TimestampedModel):
 
     def __str__(self):
         return self.school_name
+
 class UserManager(TimestampedModel):
     # 필수로 필요한 데이터를 선언
     def create_user(self, username, password):

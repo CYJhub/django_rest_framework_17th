@@ -3,7 +3,7 @@ from .models import *
 from account.serializers import *
 
 class BoardSerializer(serializers.ModelSerializer):
-    school_id = SchoolSerializer()
+    school_id = SchoolSerializer
 
     class Meta:
         model = Board #  models.py의 board 사용

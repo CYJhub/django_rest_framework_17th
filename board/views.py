@@ -11,6 +11,7 @@ from rest_framework import viewsets
 from django_filters.rest_framework import FilterSet, filters
 from django_filters.rest_framework import DjangoFilterBackend
 
+'''
 class BoardList(APIView):
 
     def get(self, request, format=None):  # 모든 게시판
@@ -49,33 +50,15 @@ class BoardDetail(APIView):
         except ObjectDoesNotExist as e:
             print(e)
             return Response({"message: not exist"})
-
 '''
-class BoardList(APIView):
 
-    def get(self, request, format=None):  # 모든 게시판
-        try:
-            boardlists = Board.objects.all()
-            serializer = BoardSerializer(boardlists, many=True)
-            # 리스트로 반환하는 boardlists
-            return Response(serializer.data)
-        except AttributeError as e:
-            print(e)
-            return Response("message: error")
 
-    def post(self, request):
-        serializer = BoardSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return HttpResponse(serializer.data, status=status.HTTP_201_CREATED)
-        return HttpResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-'''
-'''
 class BoardFilter(FilterSet):
     name = filters.CharFilter(field_name='name')
-    # school_id = filters.NumberFilter(field_name='school_id_id')
-    school_id = filters.BooleanFilter(field_name='school_id_id', method='filter_is_deleted')
+
+    def filter_school_id(self, queryset):
+        filtered_queryset = filters.NumberFilter(field_name='school_id_id')
+        return filtered_queryset
 
     class Meta:
         model = Board
@@ -83,9 +66,9 @@ class BoardFilter(FilterSet):
 
 
 
-class BoardListViewSet(viewsets.ModelViewSet):
+class BoardViewSet(viewsets.ModelViewSet):
     serializer_class = BoardSerializer
     queryset = Board.objects.all()
     filter_backends = [DjangoFilterBackend]
     filterset_class = BoardFilter
-'''
+

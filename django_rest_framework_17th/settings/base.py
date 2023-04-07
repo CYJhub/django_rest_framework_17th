@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'timetable',
     'account',
     'rest_framework',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
