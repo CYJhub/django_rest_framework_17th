@@ -27,8 +27,8 @@ class BoardList(APIView):
         serializer = BoardSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return HttpResponse(serializer.data, status=status.HTTP_201_CREATED)
-        return HttpResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
 
 
 class BoardDetail(APIView):
@@ -54,10 +54,12 @@ class BoardDetail(APIView):
 
 class BoardFilter(FilterSet):
     name = filters.CharFilter(field_name='name')
+    school_id = filters.NumberFilter(method='filter_school_id')
 
-    def filter_school_id(self, queryset):
-        filtered_queryset = filters.NumberFilter(field_name='school_id_id')
-        return filtered_queryset
+    def filter_school_id(self, queryset, name, value):
+        return queryset.filter(**{
+            name: value,
+        })
 
     class Meta:
         model = Board
@@ -68,4 +70,4 @@ class BoardViewSet(viewsets.ModelViewSet):
     serializer_class = BoardSerializer
     queryset = Board.objects.all()
     filter_backends = [DjangoFilterBackend]
-    filter_set_class = BoardFilter
+    filterset_class = BoardFilter

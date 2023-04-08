@@ -123,6 +123,248 @@ content = models.TextField(blank=False)
 
 - 두 테이블 간의 관계를 표현하기 위해서 Nested Serializer 를 사용하였다.
 ```python
+class BoardSerializer(serializers.ModelSerializer):
+    school_id = SchoolSerializer
 
+    class Meta:
+        model = Board  # models.py의 board 사용
+        fields = '__all__'  # 모든 필드 포함
 ```
 
+- School 과 Board 는 1:N 의 관계를 가지므로, Board 에 관련된 School 의 정보를 함께 가져오기 위해 Nested Serializer 를 사용하였다.
+
+### 의문점
+
+- 저번 과제에서 models.py를 구현할 때, 대댓글 테이블을 따로 만들지 않고 댓글 테이블을 자기 참조하여 만들었는데 이를 Serializer로 구현하려니 코드가 이상해졌다.
+```python
+parent_comment = CommentSerializer()
+```
+- 위 코드를 CommentSerializer 에 넣으니 에러가 나는 것을 보고, Serializer 는 자기 참조가 안 되는 듯 보였다.
+- 그래서 아래와 같이 코드를 InCommentSerializer 를 따로 만들어 코드를 리팩토링 해보았다.
+```python
+class CommentSerializer(serializers.ModelSerializer):
+    post = PostSerializer
+    user = UserSerializer
+
+    # parent_comment = CommentSerializer()
+
+    class Meta:
+        model = Comment  
+        fields = '__all__'  # 모든 필드 포함
+
+
+class InCommentSerializer(serializers.ModelSerializer):
+    parent_comment = CommentSerializer
+
+    class Meta:
+        model = Comment
+        fields = '__all__'  # 모든 필드 포함
+```
+- InCommentSerializer 는 Comment 클래스에 있는 모드 필드를 포함하되, **parent_comment = CommentSerializer** 를 설정하여 CommentSerializer 와 관계를 맺도록 하였다.
+- 이와 관련해서 구글링을 해보았지만 참고할 만 한 레퍼런스가 딱히 없어서 이렇게 구현을 했는데 이런 방법이 맞는 것인지 궁금합니다..
+
+###  CBV (Class-Based View)
+
+```python
+class BoardList(APIView):
+
+    def get(self, request, format=None):  
+        try:
+            board_list = Board.objects.all()
+            serializer = BoardSerializer(board_list, many=True)
+            return Response(serializer.data)
+        except AttributeError as e:
+            print(e)
+            return Response("message: error")
+
+    def post(self, request):
+        serializer = BoardSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+
+class BoardDetail(APIView):
+    def get(self, request, pk):
+        try:
+            board = Board.objects.get(id=pk)
+            serializer = BoardSerializer(board)
+            return Response(serializer.data, status=201)
+        except ObjectDoesNotExist as e:
+            print(e)
+            return Response({"message: error"})
+
+    def delete(self, request, pk):
+        try:
+            board = Board.objects.get(id=pk)
+            board.delete()
+            return Response(status=200)
+        except ObjectDoesNotExist as e:
+            print(e)
+            return Response({"message: not exist"})
+```
+- BoardList 는 APIView 를 상속받고 있다.
+- APIView는 클래스로 정의된다.
+- APIView를 상속받은 클래스 안에 request method에 맞는 함수들을 정의해주면 각각의 요청은 request method 이름에 맞게 구분되어 그에 맞는 결과를 반환하게 된다. 
+ 
+### ViewSet 으로 리팩토링
+
+- 여러가지 API 기능을 통합해서 하나의 API set 으로 제공하는 것이다.
+- CBV 로 작성한 코드를 보면 BoardList, BoardDetail 각각의 api 가 중복되는 경우가 있다. 
+- 이럴때 ViewSet 을 쓰게 되면 중복되는 로직의 코드를 줄일 수 있어 코드의 효율성을 높일 수 있다.
+- ViewSet은 .get(), .post() 대신 .list(), .create() 같은 액션을 제공한다. 
+```python
+class BoardViewSet(viewsets.ModelViewSet):
+    serializer_class = BoardSerializer
+    queryset = Board.objects.all()
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = BoardFilter
+```
+
+### URL 매핑 with Router
+```python
+router = routers.DefaultRouter()
+router.register('board', BoardViewSet)
+
+urlpatterns = [
+    path('', include(router.urls)),
+]
+```
+- viewset들의 view를 명시적으로 등록하는 것보다 router 클래스를 사용해 viewset을 등록하였다. 
+
+### Filtering 기능 구현하기
+```python
+class BoardFilter(FilterSet):
+    name = filters.CharFilter(field_name='name')
+    school_id = filters.NumberFilter(method='filter_school_id')
+
+    def filter_school_id(self, queryset, name, value):
+        return queryset.filter(**{
+            name: value,
+        })
+
+    class Meta:
+        model = Board
+        fields = ['name', 'school_id']
+```
+- Board 클래스 내의 name, school_id_id 에 필터를 걸어 줄 BoardFilter 클래스를 FilterSet 을 상속해 선언해주었다.
+
+### 모든 데이터를 가져오는 API 만들기
+
+- Board의 모든 list를 가져오는 API 요청 결과
+
+  - url : board/ 
+  - method: GET
+```
+{
+        "id": 3,
+        "created_at": "2023-04-01T01:33:26.211450+09:00",
+        "updated_at": "2023-04-01T01:33:26.211450+09:00",
+        "category": "진로",
+        "name": "진로게시판",
+        "is_deleted": false,
+        "school_id": 2
+    },
+    {
+        "id": 2,
+        "created_at": "2023-04-01T01:33:18.361955+09:00",
+        "updated_at": "2023-04-01T01:33:18.362962+09:00",
+        "category": "학과",
+        "name": "컴퓨터공학과",
+        "is_deleted": false,
+        "school_id": 1
+    },
+    {
+        "id": 1,
+        "created_at": "2023-04-01T01:25:16.489555+09:00",
+        "updated_at": "2023-04-01T01:25:16.489555+09:00",
+        "category": "학과",
+        "name": "홍익대컴퓨터공학과",
+        "is_deleted": false,
+        "school_id": 1
+    }
+```
+![BoardList](https://user-images.githubusercontent.com/81136546/230720061-8c31293c-e3b4-410c-abb9-4613d71344dc.png)
+
+### 특정 데이터를 가져오는 API 만들기
+
+- 3번째 Board를 가져오는 API 요청 결과 
+  - url: board/3/
+  - method: GET
+```
+{
+    "id": 3,
+    "created_at": "2023-04-01T01:33:26.211450+09:00",
+    "updated_at": "2023-04-01T01:33:26.211450+09:00",
+    "category": "진로",
+    "name": "진로게시판",
+    "is_deleted": false,
+    "school_id": 2
+}
+```
+![BoardDetail](https://user-images.githubusercontent.com/81136546/230720765-d1c30990-8926-4100-9cfc-8d054253fd66.png)
+
+### 새로운 데이터를 create하도록 요청하는 API 만들기
+
+- Board를 추가하는 API 요청 결과
+  - url: board/
+  - method: POST
+
+![POST](https://user-images.githubusercontent.com/81136546/230721062-e08f08f2-f2f3-401c-8a67-6a562794989f.png)
+
+![POST1](https://user-images.githubusercontent.com/81136546/230721095-7a5f4b35-57eb-403b-bd38-e9ee5c2903c5.png)
+
+### 특정 데이터를 삭제 또는 업데이트하는 API
+
+- 특정 Board 를 삭제하는 API 요청 결과
+  - url: board/4/
+  - method: DELETE
+- id가 4인 board 를 삭제한 후 다시 /board/4 로 GET 요청을 하면 아래와 같이 뜬다.
+```python
+{
+    "detail": "찾을 수 없습니다."
+}
+```
+
+### 겪은 오류와 해결 과정
+1. many = True 추가
+```python
+class BoardList(APIView):
+
+    def get(self, request, format=None):  
+        try:
+            board_list = Board.objects.all()
+            serializer = BoardSerializer(board_list, many = True)
+            return Response(serializer.data)
+        except AttributeError as e:
+            print(e)
+            return Response("message: error")
+```
+- Serializer 에 해당 필드가 있는데 자꾸 없다는 오류가 떴다. 
+- serializer로 보내주는 데이터가 여러 개의 object인 queryset 인 경우,
+- queryset을 넘겨주기 위해서는 **many=True** 를 추가로 작성해줘야 한다고 한다.
+- 나와 같은 오류를 해결한 블로그를 첨부하겠다. 
+  [many=True](https://dongza.tistory.com/20)
+
+2. Nested Serializer
+
+- Nested Serializer 를 사용하는 이유는 두 테이블 간의 관계를 연결시켜, 외래키가 포함된 테이블의 정보까지 함께 보기 위함이다.
+- 하지만 외래키인 school_id_id 필드를 넣어줬음에도 'school_id_id cannot be null' 이라는 에러가 뜨며 api가 돌아가지 않았다.
+- 그래서 아래와 같이 SchoolSerializer 뒤에 괄호를 없앴더니 정상적으로 돌아가긴 했다.
+- 결과적으로는 돌아가지만 내가 구현한 것은 사실 Nested Serializer 는 아닌 것이다..
+- 이 부분은 추후에 수정해야겠다고 생각했다..!
+```python
+class BoardSerializer(serializers.ModelSerializer):
+    school_id = SchoolSerializer
+
+    class Meta:
+        model = Board  # models.py의 board 사용
+        fields = '__all__'  # 모든 필드 포함
+```
+
+### 회고
+
+- ViewSet 을 사용하니 확실히 따로 api 를 구현할 때 보다 코드 길이가 줄어드는게 너무 신기했고 개발자 입장에서 너무 편리하다고 생각이 들었다.
+- 직접 API 를 만들고 값을 넣어가며 눈으로 보이는 코딩을 할 수 있어서 확실히 지난 과제보다 재미있었다ㅎㅎㅎ!!
+- nested serializer에서 미흡한 점이 있었지만 이번 과제를 함으로써 django 에서 쓰이는 다양한 기능을 써볼 수 있어서 정말 유익했다!!
