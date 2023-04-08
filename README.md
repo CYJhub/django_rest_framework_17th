@@ -94,3 +94,35 @@ parent_comment = models.ForeignKey('self', on_delete=models.CASCADE, null=True)
 작년에 데이터베이스 강의를 들었을 때 교수님께서 현실에 있는 데이터를 추상화하는 과정(모델링)이 데이터베이스를 다룰 때 가장 중요한 부분이라고 강조하셨던 기억이 있어서 이번 과제를 하는데 있어서 ERD를 짜는 데 가장 많은 시간을 할애하였다.
 과제를 하면서 가장 헷갈렸던 부분 중 하나가 테이블을 어디까지 세세하게 나누어야하고, 어떤 정보를 담아야할지였는데 내가 에브리타임을 사용하는 사람일 경우를 기준으로 생각해보니 필요한 정보만을 추출하여 ERD를 짤 수 있었다.
 그리고 우리가 실제로 자주 사용하는 어플을 가지고 데이터 모델링을 해볼 수 있어서 재미있었고, Django와 조금은(?) 더 친해진 느낌이다.....ㅎ
+
+
+# CEOS 17기 백엔드 3주차 스터디
+
+## 2주차 데이터 모델링 피드백 반영
+
+### CharField를 TextField로 수정
+```python
+content = models.TextField(blank=False)
+```
+- MySQL에서 char type의 최댓값은 255이기 때문에, 이보다 더 큰 값을 넣어줘야 하는 필드는 TextField로 바꿔주었다.
+
+### class naming 규칙 반영
+- My_board 를 MyBoard 로 변경하였다.
+- My_Lecture 를 MyLecture 로 변경하였다.
+
+## 3주차 미션: DRF1 - Serializer, API View & Filter
+
+### Serializer
+
+- Serializer는 Django가 다룰 수 있는 객체를 외부에서 받는 JSON 등의 데이터 형태로 변환한다는 것을 의미한다. 
+- Deserialize는 Serializer와 반대되는 개념이다.
+- 요청 JSON 데이터를 Deserialize 하여 Django 객체에 저장하고, 
+- Django 객체를 Serializer 하여 응답 JSON 데이터로 바꿔주는 것이다.
+
+### Nested Serializer
+
+- 두 테이블 간의 관계를 표현하기 위해서 Nested Serializer 를 사용하였다.
+```python
+
+```
+
