@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserSerializer,SchoolSerializer,SignUpSerializer,LoginSerializer
+from .serializers import UserSerializer,SignUpSerializer,LoginSerializer
 from django_rest_framework_17th.settings import SECRET_KEY, REFRESH_TOKEN_SECRET_KEY
 
 
@@ -13,13 +13,14 @@ from django_rest_framework_17th.settings import SECRET_KEY, REFRESH_TOKEN_SECRET
 #회원가입
 class SignupView(APIView):
     def post(self, request): #프론트에서 올린 데이터(request)
+        print("디버깅")
         serializer = SignUpSerializer(data=request.data)
         #입력된 데이터가 유효하다면,에러발생X
         if serializer.is_valid(raise_exception=False):
-            user = serializer.save()
+            user = serializer.save(request)
             response = Response(
                 {
-                    "user_id": user.user_id,
+                    "id": user.id,
                     "message": "회원가입 성공",
                 },
                 status=status.HTTP_200_OK,
@@ -40,7 +41,7 @@ class LoginView(APIView):
         if serializer.is_valid(raise_exception=False):
             #유효성 검사를 통과한 경우 토큰 확인
             #serializer.validated_data는 프론트에서 전송한 request.data에서 추출됨
-            user_id=serializer.validated_data.get("user_id")
+            id=serializer.validated_data.get("id")
 
             # jwt token(refresh(장기), access(단기) 발급한걸 가져옴
             access_token = serializer.validated_data['access_token']
@@ -48,7 +49,7 @@ class LoginView(APIView):
 
 
             response = Response({
-                "user_id": user_id,
+                "id": id,
                 "message": "로그인 성공",
                 "token":{
                 "access_token": access_token.__str__(),
@@ -100,9 +101,9 @@ class AuthView(APIView):
             #payload에서 user_id(고유한 식별자)를 추출
             #payload={'user_id:1'}
             payload = jwt.decode(access_token, SECRET_KEY, algorithms=['HS256']) #accesstoken 번호
-            user_id = payload.get('user_id')
+            id = payload.get('id')
             #해당 유저 아이디를 가지는 객체 user을 가져와
-            user = get_object_or_404(pk=user_id)
+            user = get_object_or_404(pk=id)
             #UserSerializer로 JSON화 시켜준 뒤,
             serializer = UserSerializer(instance=user)
             #프론트로 200과 함께 재전송
@@ -124,11 +125,11 @@ class AuthView(APIView):
             try:
                 #refresh_token 디코딩
                 payload = jwt.decode(refresh_token, REFRESH_TOKEN_SECRET_KEY, algorithms=['HS256'])
-                user_id = payload.get('user_id')
-                user = get_object_or_404(pk=user_id)
+                id = payload.get('id')
+                user = get_object_or_404(pk=id)
 
                 #새로운 access_token 발급
-                access_token = jwt.encode({"user_id": user.pk}, SECRET_KEY, algorithm='HS256')
+                access_token = jwt.encode({"id": user.pk}, SECRET_KEY, algorithm='HS256')
 
                 #access_token을 쿠키에 저장하여 프론트로 전송
                 response = Response(UserSerializer(instance=user).data, status=status.HTTP_200_OK)
