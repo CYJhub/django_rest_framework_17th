@@ -3,13 +3,15 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from core.models import TimestampedModel
 import uuid
 
+
 class School(TimestampedModel):
     school_name = models.CharField(max_length=100)
 
     def __str__(self):
         return self.school_name
 
-class UserManager(BaseUserManager): # 얘가 문제였어...........'Manager' object has no attribute 'create_user' 에러 뜸
+
+class UserManager(BaseUserManager):
     # 필수로 필요한 데이터를 선언
     def create_user(self, id, email, password, nickname):
         if not id:
@@ -37,7 +39,7 @@ class UserManager(BaseUserManager): # 얘가 문제였어...........'Manager' ob
         user.save(using=self._db)
         return user
 
-class User(AbstractBaseUser,TimestampedModel):
+class User(AbstractBaseUser,TimestampedModel): #AbstractBaseUser 이거 추가 안해서 에러
     user_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     id = models.CharField("아이디", max_length= 20)
@@ -55,6 +57,7 @@ class User(AbstractBaseUser,TimestampedModel):
 
     REQUIRED_FIELDS = ['password']  # 필수로 값을 받아야하는 필드
     USERNAME_FIELD = 'email'
+
     # custom user 생성 시 필요
     objects = UserManager()
 

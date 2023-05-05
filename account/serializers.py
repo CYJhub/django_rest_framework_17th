@@ -45,8 +45,6 @@ class SignUpSerializer(serializers.ModelSerializer):
         max_length=255
     )
 
-
-
     class Meta:
         model = User
         fields = ('id','email','password','nickname')
@@ -105,17 +103,16 @@ class LoginSerializer(serializers.ModelSerializer):
 
         #유저가 존재하고, 아이디와 비밀번호가 일치한다면 RefreshToken.for_user를 이용해
         #user객체로부터 refresh token과 access token 생성
-        token = RefreshToken.for_user(user)
-        refresh_token = str(token)
-        access_token = str(token.access_token)
+        # RefreshToken 클래스를 사용하여 access token과 refresh token을 발급합니다.
 
-        data = {
-            'user': user,
-            'access_token': access_token,
-            'refresh_token': refresh_token,
+        refresh = RefreshToken.for_user(user)
+
+        return {
+            'user' : user,
+            'id' : id,
+            'access_token': str(refresh.access_token),
+            'refresh_token': str(refresh)
         }
-
-        return data
 
 
 

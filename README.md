@@ -368,3 +368,170 @@ class BoardSerializer(serializers.ModelSerializer):
 - ViewSet 을 사용하니 확실히 따로 api 를 구현할 때 보다 코드 길이가 줄어드는게 너무 신기했고 개발자 입장에서 너무 편리하다고 생각이 들었다.
 - 직접 API 를 만들고 값을 넣어가며 눈으로 보이는 코딩을 할 수 있어서 확실히 지난 과제보다 재미있었다ㅎㅎㅎ!!
 - nested serializer에서 미흡한 점이 있었지만 이번 과제를 함으로써 django 에서 쓰이는 다양한 기능을 써볼 수 있어서 정말 유익했다!!
+
+## 4주차: DRF2 - Simple JWT  
+
+### Q1. 로그인 인증은 어떻게 하나요?
+
+#### Session과 Cookie를 이용한 로그인 인증 방식
+
+- Session: 방문자가 웹 서버에 접속해 있는 일련의 상태
+- Cookie(Session ID): 웹 사이트에 접속할 때 생성되는 정보를 담은 데이터 = 세션을 발급받기 위한 도구
+
+![세션과 쿠키](https://user-images.githubusercontent.com/81136546/236402787-01db8b2b-5ab9-4525-925d-f3f724b41b96.png)
+- 사용자가 로그인하면 
+- 서버 측에서 사용자의 인증 정보를 저장하고 
+- 클라이언트 측에 쿠키(세션 ID)를 전송하여 인증을 유지한다.
+- 그 후, 클라이언트가 서버에 작업을 요청할 때
+- 요청 헤더에 쿠키가 같이 전달된다
+- 서버는 클라이언트가 보낸 쿠키와 기존 정보를 비교하여 인증한다.
+
+#### OAuth를 이용한 로그인 인증 방식
+
+- OAuth란?
+ : 사용자의 인증 및 권한 부여를 위한 표준 프로토콜
+ : 쉽게 말해, 우리의 서비스가 우리 서비스를 이용하는 유저의 타사 플랫폼 정보에 접근하기 위해서 권한을 타사 플랫폼으로부터 위임 받는 것 이다.
+
+- 장점
+  - 사용자는 ID와 Password를 공유하지 않으면서 여러 애플리케이션에서의 로그인 및 접근을 간편하게 할 수 있습니다
+- 단점
+  - OAuth를 사용하는 서비스가 중단되면 다른 서비스와 연동하는 데 어려움이 있을 수 있다.
+  - 과정이 복잡하고 개발이 어렵다...
+
+#### JWT를 이용한 로그인 인증 방식
+
+ - 서버에서 JWT를 발급하여 클라이언트에게 전달하고, 
+ - 클라이언트는 이를 저장해두고 인증이 필요한 요청을 보낼 때마다 
+ - JWT를 함께 전송하여 인증하는 방식
+
+### Q2. JWT는 무엇인가요?
+
+JSON WEB TOKEN 의 약자
+: 웹 애플리케이션 간 정보를 안전하게 전송하기 위한 오픈 스탠다드
+
+- JWT는 세가지 부분으로 이루어져 있다.
+  ![JWT구조](https://user-images.githubusercontent.com/81136546/236397384-7b3ec663-9991-4313-b629-7c2e2c40bc8e.png)
+  - Header - 토큰의 유형과 해싱 알고리즘 정보가 담겨 있다.
+  - Payload - 서버와 클라이언트 간 주고받을 **정보**가 JSON 형태로 인코딩되어 있다.
+    - Payload에는 사용자 정보, 권한, 토큰 만료 시간 등을 포함할 수 있습니다.
+  - Signature - 헤더와 페이로드를 인코딩하여 생성된 서명 값이다.
+
+- 장점
+  - 토큰 자체에 정보가 담겨 있어 별도의 세션 상태를 유지할 필요가 없다.
+  - 따라서, 서버는 상태를 유지할 필요 없이 각 요청마다 **JWT 를 검증**하여 사용자 인증 및 권한 부여를 한다.
+  - URL 파라미터나 HTTP 헤더 등으로 전송할 수 있다.
+  - 다양한 플랫폼과 프로그래밍 언어에서 지원되기 때문에 유연하게 사용된다.
+- 단점/주의할 점
+  - 보안성이 떨어질 수 있다.
+    - Signature 값은 secret key 를 사용하여 생성되기 때문에 노출되면 토큰이 위조될 가능성이 있다. 
+    - secret key 를 안전하게 보관하고, 토큰의 만료 시간을 적절하게 설정해야 한다.
+  - 토큰의 크기가 커질 수 있다.
+    - 토큰 자체에 정보가 담기기 때문에, Payload의 크기가 커지면 네트워크 부하가 생길 수 있다.
+  - Payload 자체는 암호화되지 않기 때문에 정보가 노출될 수 있다.
+  - 토큰을 탈취당하면 대처하기 어렵고, 토큰 만료에 대한 처리가 어렵다.
+    - JWT는 토큰을 서명한 발급자만 토큰을 무효화할 수 있기 때문에 토큰 만료 처리를 위해서는 토큰을 강제로 만료시키는 방식을 채택해야 합니다.
+
+### +) Access Token/ Refresh token에 대해 알아보자
+
+1. Access Token 
+ : 사용자가 인증을 거친 후, 서비스에 접근할 때 해당 사용자를 식별하는데 사용하는 문자열
+
+   - Access token은 **인증된 사용자의 권한 정보**를 포함할 수 있다.
+   - 일반적으로 짧은 유효 기간을 가지며, 만료되면 다시 발급해야 한다.
+
+2. Refresh Token
+ : Access token의 만료 기간이 지난 후 새로운 Access token을 발급받을 때 사용되는 문자열
+
+   - Refresh token은 Access token과 마찬가지로 일정 시간 동안 유효하며, 만료 시간이 지난 후에는 사용할 수 없다. 
+     - Access Token보다 상대적으로 **긴 유효 기간**을 갖는다.
+   - Refresh token은 주로 **로그인한 사용자를 식별**하고, **유효한 Refresh token이 있는 경우에만 새로운 Access token을 발급**하는 인증 서비스에서 사용된다. 
+- Refresh Token은 Access Token보다 보안에 더욱 신경써야 한다.
+
+  그 이유는? 
+  - Refresh token은 Access token보다 더 오랜 시간 동안 유효하기 때문에 만약 Refresh token이 탈취된다면 해커는 긴 시간 동안 인증된 사용자처럼 서비스에 접근할 수 있기 때문!
+
+###  Q3. JWT 로그인 구현하기
+
+#### 1. 커스텀 User 모델 사용하기
+- AbstractBaseUser를 상속받아 커스텀 User 모델 생성
+- 데이터 모델링 미션 때 미리 만들어 놨기 때문에 따로 생성하지는 않았다.
+
+#### 2. 회원가입 구현하기
+![signup](https://user-images.githubusercontent.com/81136546/236418700-6e793e0b-d5ce-4c4b-98fe-ea6e73f24c33.png)
+
+#### 3. Login 구현하기
+- URL: http://127.0.0.1:8000/account/login/
+- Method: POST
+- 로그인 성공 화면
+![login](https://user-images.githubusercontent.com/81136546/236411881-f954fd26-02b6-428b-bd9e-23787be4e9ef.png)
+- JSON형식으로 데이터를 넣어주고 로그인을 하게 되면
+- HTTP RESPONSE로 사용자 아이디와 로그인 성공 메시지 그리고 access_token과 refresh_token이 함께 발급된다.
+- 로그인 실패 화면
+- ![스크린샷 2023-05-05 173948](https://user-images.githubusercontent.com/81136546/236413568-fd480e32-5a02-486e-97d4-d24ecaa2a03c.png)
+- "user account not exist"라는 error message 도출
+
+#### 4. Refresh Token 발급
+```python
+class LoginSerializer(serializers.ModelSerializer):
+    ...
+    def validate(self, data):
+        ...
+        refresh = RefreshToken.for_user(user)
+        return {
+            'user' : user,
+            'id' : id,
+            'access_token': str(refresh.access_token),
+            'refresh_token': str(refresh)
+        }
+```
+
+#### 5. JWT Logout 은 어떻게 이루어질까요?
+-  access token과 refresh token을 삭제하거나 만료시킴으로써 로그아웃 구현
+```python
+class LogoutView(APIView):
+
+    def post(self, request):
+        response = Response(status=status.HTTP_204_NO_CONTENT)
+        response.delete_cookie('access_token')
+        response.delete_cookie('refresh_token')
+        return response
+```
+#### 6. permission_classes를 통한 권한 설정
+```python
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        # 'rest_framework.permissions.IsAuthenticated', # 인증된 사용자만 접근
+        # 'rest_framework.permissions.IsAdminUser', # 관리자만 접근
+        'rest_framework.permissions.AllowAny', # 누구나 접근
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+```
+#### 7. AuthView로 인증 방식 구현
+
+- 토큰이 유효한지 여부를 확인하고
+- 만약 access_token이 유효하지 않으면, 
+- refresh_token을 이용해 새로운 access_token을 발급해준다.
+- 만약 access_token이 유효하다면,
+- 이를 이용해, 해당 사용자의 정보를 반환한다.
+
+
+
+### 겪은 오류와 해결 과정
+1. ERROR: 'Manager' object has no attribute 'create_user'
+- 'create_user' 관련 오류길래 models.py에서 커스텀 유저 생성 관련 코드를 잘 살펴봤다.
+
+- class UserManager에서 처음에 BaseUserManager를 상속받지 않아서였다.
+- 그래서, ```class UserManager(BaseUserManager):```로 고쳐줬더니 잘 돌아갔다,,,,
+
+2. access_token을 기반으로 사용자 정보 가져올 때
+- 분명 로그인을 정상적으로 하고 유효한 access_token으로 사용자 정보를 가져오려고 하는데,
+- {"message": "access token 없음"} 이라는 에러가 자꾸 떴다. 
+- request.META['HTTP_AUTHORIZATION']에서 반환되는 값은 일반적으로 "Bearer <access_token>"과 같은 형식으로 반환되기 때문에
+- 이를 split으로 분리해 <access_token> 만을 가져와야 한다는 것을 알았다.
+- ```access_token = request.META['HTTP_AUTHORIZATION'].split()[1]```
+- 이렇게 코드를 고치고 access_token을 입력하고 실행해보니 드디어 사용자의 정보가 알맞게 나왔다.
+![image](https://user-images.githubusercontent.com/81136546/236425575-8ab7d72a-afba-46de-be09-f4fb3481fa14.png)
+- 여기서 user_id가 이상한 문자열인 이유는 기본키 타입을 UUID로 해놨기 때문이다.

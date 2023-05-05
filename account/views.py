@@ -4,7 +4,9 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserSerializer,SignUpSerializer,LoginSerializer
+
+from .models import User
+from .serializers import UserSerializer, SignUpSerializer, LoginSerializer
 from django_rest_framework_17th.settings import SECRET_KEY, REFRESH_TOKEN_SECRET_KEY
 
 
@@ -13,7 +15,6 @@ from django_rest_framework_17th.settings import SECRET_KEY, REFRESH_TOKEN_SECRET
 #회원가입
 class SignupView(APIView):
     def post(self, request): #프론트에서 올린 데이터(request)
-        print("디버깅")
         serializer = SignUpSerializer(data=request.data)
         #입력된 데이터가 유효하다면,에러발생X
         if serializer.is_valid(raise_exception=False):
@@ -89,21 +90,20 @@ class LogoutView(APIView):
 class AuthView(APIView):
     def get(self, request):
         #access token을 프론트가 보낸 request에서 추출
-        access_token = request.COOKIES.get('access_token')
+        access_token = request.META['HTTP_AUTHORIZATION'].split()[1]
 
         #access token이 없다면 에러 발생
         if not access_token:
-            return Response({"message": "access token 없음"}, status=status.HTTP_401_UNAUTHORIZED)
-
+             return Response({"message": "access token 없음"}, status=status.HTTP_401_UNAUTHORIZED)
         #access token이 있다면
         #토큰 디코딩(유저 식별)
         try:
             #payload에서 user_id(고유한 식별자)를 추출
             #payload={'user_id:1'}
             payload = jwt.decode(access_token, SECRET_KEY, algorithms=['HS256']) #accesstoken 번호
-            id = payload.get('id')
+            id = payload.get('user_id')
             #해당 유저 아이디를 가지는 객체 user을 가져와
-            user = get_object_or_404(pk=id)
+            user = get_object_or_404(User, id=id)
             #UserSerializer로 JSON화 시켜준 뒤,
             serializer = UserSerializer(instance=user)
             #프론트로 200과 함께 재전송
