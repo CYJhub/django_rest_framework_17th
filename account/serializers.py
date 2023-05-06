@@ -19,8 +19,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class SignUpSerializer(serializers.ModelSerializer):
-
-    #추가옵션
     id = serializers.CharField(
         required=True,
         write_only=True,
@@ -49,15 +47,6 @@ class SignUpSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id','email','password','nickname')
 
-    # def validate(self, data):
-    #     user_id = data.get('user_id', None)
-    #
-    #     # 이미 존재하는 계정인지 확인
-    #     if User.objects.filter(user_id=user_id).exists():
-    #         raise serializers.ValidationError("User already exists")
-    #     return data
-
-    #데이터베이스에 저장
     def save(self, request):
        user = User.objects.create_user(
            id=self.validated_data['id'],
@@ -68,7 +57,6 @@ class SignUpSerializer(serializers.ModelSerializer):
        user.save()
 
        return user
-
 
 
 class LoginSerializer(serializers.ModelSerializer):
@@ -87,8 +75,6 @@ class LoginSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'password']
 
-
-    #아이디랑 비밀번호가 맞는지 확인
     def validate(self, data):
         id = data.get('id', None)
         password = data.get('password', None)

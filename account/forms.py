@@ -3,9 +3,9 @@ from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.utils.translation import ugettext_lazy as _
 from .models import User,UserManager
 
-#회원가입에서 사용되는 UserCreateForm을 수정
+
+# 회원가입 시 필요한 아이디, 이메일, 비밀번호
 class UserCreateForm(forms.ModelForm):
-    #회원가입(회원아이디, 이메일, 비밀번호
     user_id=forms.CharField(
         label=('User ID'),
         required=True,
@@ -54,7 +54,6 @@ class UserCreateForm(forms.ModelForm):
         fields = ('login_id', 'email')
 
         def clean_password2(self):
-            #프론트가 두 비밀번호 입력 일치 확인
             password1 = self.cleaned_data.get("password1")
             password2 = self.cleaned_data.get("password2")
             if password1 and password2 and password1 != password2:
