@@ -39,7 +39,8 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-class User(AbstractBaseUser,TimestampedModel): #AbstractBaseUser 이거 추가 안해서 에러
+
+class User(AbstractBaseUser,TimestampedModel):
     user_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     id = models.CharField("아이디", max_length= 20)

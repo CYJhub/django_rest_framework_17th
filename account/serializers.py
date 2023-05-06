@@ -87,10 +87,7 @@ class LoginSerializer(serializers.ModelSerializer):
         else:
             raise serializers.ValidationError("user account not exist")
 
-        #유저가 존재하고, 아이디와 비밀번호가 일치한다면 RefreshToken.for_user를 이용해
-        #user객체로부터 refresh token과 access token 생성
-        # RefreshToken 클래스를 사용하여 access token과 refresh token을 발급합니다.
-
+        # RefreshToken 클래스를 사용하여 access token과 refresh token을 발급
         refresh = RefreshToken.for_user(user)
 
         return {
