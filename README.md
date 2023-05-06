@@ -509,15 +509,72 @@ REST_FRAMEWORK = {
     )
 }
 ```
-#### 7. AuthView로 인증 방식 구현
+#### 7. AuthView
 
+- 로그인 한 사용자의 토큰 정보를 확인하고 유효 검증을 한 뒤 정보를 반환하는 뷰
+```python
+class AuthView(APIView):
+    def get(self, request):
+        # "Bearer <access_token>" 형식으로 반환되기 때문에, 분리한 후 access_token만 추출
+        access_token = request.META['HTTP_AUTHORIZATION'].split()[1]
+        # access_token이 없다면
+        if not access_token:
+             return Response({"message": "access token 없음"}, status=status.HTTP_401_UNAUTHORIZED)
+        # access_token이 존재한다면
+        # payload에서 사용자 id를 추출하여 
+        # UserSerializer에서 사용자 정보를 가져와 반환
+        try:
+            # payload에서 user_id(고유한 식별자)를 추출
+            # payload={'user_id:1'}
+            payload = jwt.decode(access_token, SECRET_KEY, algorithms=['HS256']) # accesstoken 번호
+            id = payload.get('user_id')
+            #해당 유저 아이디를 가지는 객체 user을 가져와
+            user = get_object_or_404(User, id=id)
+            #UserSerializer로 JSON화 시켜준 뒤,
+            serializer = UserSerializer(instance=user)
+            #프론트로 200과 함께 재전송
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        # Access token 유효하지 않을 때
+        except jwt.exceptions.InvalidSignatureError:
+            return Response({"message": "유효하지 않은 access token"}, status=status.HTTP_401_UNAUTHORIZED)
+        # Access token이 만료되었을 때
+        except jwt.exceptions.ExpiredSignatureError:
+            refresh_token = request.COOKIES.get('refresh_token')
+
+            #refresh_token이 없다면 에러 발생
+            if not refresh_token:
+                return Response({"message": "refresh token 없음"}, status=status.HTTP_401_UNAUTHORIZED)
+
+            try:
+                #refresh_token 디코딩
+                payload = jwt.decode(refresh_token, REFRESH_TOKEN_SECRET_KEY, algorithms=['HS256'])
+                id = payload.get('id')
+                user = get_object_or_404(pk=id)
+
+                #새로운 access_token 발급
+                access_token = jwt.encode({"id": user.pk}, SECRET_KEY, algorithm='HS256')
+
+                #access_token을 쿠키에 저장하여 프론트로 전송
+                response = Response(UserSerializer(instance=user).data, status=status.HTTP_200_OK)
+                response.set_cookie(key='access_token', value=access_token, httponly=True, samesite='None', secure=True)
+
+                return response
+
+            # refresh_token 예외 처리
+            except jwt.exceptions.InvalidSignatureError:
+                # refresh_token 유효하지 않음
+                return Response({"message": "유효하지 않은 refresh token"}, status=status.HTTP_401_UNAUTHORIZED)
+
+            except jwt.exceptions.ExpiredSignatureError:
+                # refresh_token 만료 기간 다 됨 => 이경우에는, 사용자가 로그아웃 후 재로그인하도록 유인 => 리다이렉트
+                return Response({"message": "refresh token 기간 만료"}, status=status.HTTP_401_UNAUTHORIZED)
+```
 - 토큰이 유효한지 여부를 확인하고
+- 만약 access_token이 유효하다면,
+- 이를 이용해, 해당 사용자의 정보를 반환하고, 
 - 만약 access_token이 유효하지 않으면, 
 - refresh_token을 이용해 새로운 access_token을 발급해준다.
-- 만약 access_token이 유효하다면,
-- 이를 이용해, 해당 사용자의 정보를 반환한다.
-
-
 
 ### 겪은 오류와 해결 과정
 1. ERROR: 'Manager' object has no attribute 'create_user'
