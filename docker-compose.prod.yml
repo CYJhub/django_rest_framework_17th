@@ -1,25 +1,37 @@
+#docker-compose.prod.yml
 version: '3'
 services:
 
   web:
     container_name: web
-    #작성
+    build:
+      context: ./
+      dockerfile: #작성
+    command: gunicorn django_rest_framework_17th.wsgi:application --bind 0.0.0.0:8000
+    environment:
+      DJANGO_SETTINGS_MODULE: django_rest_framework_17th.settings.prod
+    env_file:
+      - #작성
     volumes:
       - static:/home/app/web/static
       - media:/home/app/web/media
+    expose:
+      - #작성
     entrypoint:
       - sh
       - config/docker/entrypoint.prod.sh
 
   nginx:
     container_name: nginx
-    #작성
+    build: #작성
     volumes:
       - static:/home/app/web/static
       - media:/home/app/web/media
+    ports:
+      - #작성
     depends_on:
       - web
 
 volumes:
   static:
-  media:
+	media:
