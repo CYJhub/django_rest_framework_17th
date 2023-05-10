@@ -74,16 +74,21 @@ class AuthView(APIView):
              return Response({"message": "access token 없음"}, status=status.HTTP_401_UNAUTHORIZED)
 
         try:
-            # payload에서 user_id(고유한 식별자)를 추출
-            # payload={'user_id:1'}
-            payload = jwt.decode(access_token, SECRET_KEY, algorithms=['HS256']) # accesstoken 번호
-            id = payload.get('user_id')
-            #해당 유저 아이디를 가지는 객체 user을 가져와
-            user = get_object_or_404(User, id=id)
-            #UserSerializer로 JSON화 시켜준 뒤,
-            serializer = UserSerializer(instance=user)
-            #프론트로 200과 함께 재전송
+            user = request.user
+            if user.is_authenticated:
+                serializer = UserSerializer(instance=user)
             return Response(serializer.data, status=status.HTTP_200_OK)
+
+            # # payload에서 user_id(고유한 식별자)를 추출
+            # # payload={'user_id:1'}
+            # payload = jwt.decode(access_token, SECRET_KEY, algorithms=['HS256']) # accesstoken 번호
+            # id = payload.get('user_id')
+            # #해당 유저 아이디를 가지는 객체 user을 가져와
+            # user = get_object_or_404(User, id=id)
+            # #UserSerializer로 JSON화 시켜준 뒤,
+            # serializer = UserSerializer(instance=user)
+            # #프론트로 200과 함께 재전송
+            # return Response(serializer.data, status=status.HTTP_200_OK)
 
          #Access token 예외 처리
         except jwt.exceptions.InvalidSignatureError:
