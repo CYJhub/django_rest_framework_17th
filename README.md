@@ -561,7 +561,7 @@ class AuthView(APIView):
 
                 return response
 
-            # refresh_token 예외 처리
+            # refresh_toke
             except jwt.exceptions.InvalidSignatureError:
                 # refresh_token 유효하지 않음
                 return Response({"message": "유효하지 않은 refresh token"}, status=status.HTTP_401_UNAUTHORIZED)
