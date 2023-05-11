@@ -7,3 +7,6 @@ sqlparse==0.4.3
 
 djangorestframework~=3.14.0
 django-filter~=23.1
+
+djangorestframework-simplejwt==5.2.2
+PyMySQL==1.0.2
