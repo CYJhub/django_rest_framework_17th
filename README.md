@@ -594,3 +594,37 @@ class AuthView(APIView):
 - 여기서 user_id가 이상한 문자열인 이유는 기본키 타입을 UUID로 해놨기 때문이다.
 
 ## 5주차: AWS : EC2, RDS & Docker & Github Action
+
+### 실 환경 배포
+
+- 회원가입 API
+- `POST http://ec2-52-79-177-143.ap-northeast-2.compute.amazonaws.com/account/signup/`
+![SIGNUP](https://github.com/CEOS-Developers/django_rest_framework_17th/assets/81136546/6f8fa822-6aae-4ead-ab34-1506d00992bd)
+
+- 로그인 API
+- `POST ec2-52-79-177-143.ap-northeast-2.compute.amazonaws.com/account/login/`
+![LOGIN](https://github.com/CEOS-Developers/django_rest_framework_17th/assets/81136546/74930028-935b-4623-a94a-8b1e9118f2dd)
+- 과제는 성공적으로 구현했다!
+
+### GitHub Actions 사용해보기
+
+- Github Secrets에 각각 알맞은 값을 넣어준다.
+  - 이때, Secrets를 사용하는 이유는 **민감한 정보를 안전하게 관리**해주기 때문이다.
+  - 워크플로우 파일에서는 이 시크릿 값을 $ 기호를 사용해서, ${{ secrets.MY_SECRET }}와 같이 작성해주면 된다.
+![secret](https://github.com/CEOS-Developers/django_rest_framework_17th/assets/81136546/210b174b-4428-4a6e-85c8-d71d28ef907d)
+- push할 브랜치를 `CYJhub`로 설정해주고,
+- 깃헙에 코드를 push하면, EC2 인스턴스로 사용하여 자동으로 배포해준다.
+
+### 회고
+
+#### EC2 인스턴스 생성
+  - 해킹을 잘 당한다고 해서 요구하는 정보를 빠짐없이 잘 적어넣으려고 했는데
+  - ui가 자주 바뀌는 탓인지 구글링하는 글마다 구조가 달라서 조금 헷갈렸다..
+  - 그래도 문제없이 
+#### RDS와 로컬 MySQL 연결
+ERROR: `Cannot Connect to Database Server`
+
+  - RDS 데이터베이스 생성할 때 마스터 사용자 이름을 'admin'으로 해놓고
+  - MySQL에서는 username을 'root'로 지정해서 생긴 에러였다.
+  - 마찬가지로 이름을 'admin'으로 바꿔주니 연결이 잘 된 것을 확인할 수 있었다.
+  - 내가 입력한 정보를 잘 기억해야겠다고 다시한번 다짐했다...ㅎㅎ
