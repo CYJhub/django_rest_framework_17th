@@ -592,3 +592,5 @@ class AuthView(APIView):
 - 이렇게 코드를 고치고 access_token을 입력하고 실행해보니 드디어 사용자의 정보가 알맞게 나왔다.
 ![image](https://user-images.githubusercontent.com/81136546/236425575-8ab7d72a-afba-46de-be09-f4fb3481fa14.png)
 - 여기서 user_id가 이상한 문자열인 이유는 기본키 타입을 UUID로 해놨기 때문이다.
+
+## 5주차: AWS : EC2, RDS & Docker & Github Action
