@@ -624,7 +624,6 @@ DEBUG=False
 DJANGO_ALLOWED_HOSTS={EC2 서버 ip 주소}
 DJANGO_SECRET_KEY={django secret key}
 ```
-- push할 브랜치를 `CYJhub`로 설정해주고,
 - 깃헙에 코드를 push하면, EC2 인스턴스로 사용하여 자동으로 배포해준다.
 
 ### 회고
