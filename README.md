@@ -608,19 +608,27 @@ class AuthView(APIView):
 
 ### GitHub Actions 사용해보기
 
-- Github Secrets에 각각 알맞은 값을 넣어준다.
+- Github Secrets에 각각 알맞은 값을 넣어준다. -> 배포할 때 여기에 있는 정보를 활용
   - 이때, Secrets를 사용하는 이유는 **민감한 정보를 안전하게 관리**해주기 때문이다.
   - 워크플로우 파일에서는 이 시크릿 값을 $ 기호를 사용해서, ${{ secrets.MY_SECRET }}와 같이 작성해주면 된다.
 ![secret](https://github.com/CEOS-Developers/django_rest_framework_17th/assets/81136546/210b174b-4428-4a6e-85c8-d71d28ef907d)
+- ENV_VARS: `.env.prod` 파일을 복붙
+```python
+DATABASE_HOST={RDS db 주소}
+DATABASE_DB=mysql
+DATABASE_NAME={RDS 기본 database 이름}
+DATABASE_USER={RDS User 이름}
+DATABASE_PASSWORD={RDS master 비밀번호}
+DATABASE_PORT=3306
+DEBUG=False
+DJANGO_ALLOWED_HOSTS={EC2 서버 ip 주소}
+DJANGO_SECRET_KEY={django secret key}
+```
 - push할 브랜치를 `CYJhub`로 설정해주고,
 - 깃헙에 코드를 push하면, EC2 인스턴스로 사용하여 자동으로 배포해준다.
 
 ### 회고
 
-#### EC2 인스턴스 생성
-  - 해킹을 잘 당한다고 해서 요구하는 정보를 빠짐없이 잘 적어넣으려고 했는데
-  - ui가 자주 바뀌는 탓인지 구글링하는 글마다 구조가 달라서 조금 헷갈렸다..
-  - 그래도 문제없이 
 #### RDS와 로컬 MySQL 연결
 ERROR: `Cannot Connect to Database Server`
 
@@ -628,3 +636,48 @@ ERROR: `Cannot Connect to Database Server`
   - MySQL에서는 username을 'root'로 지정해서 생긴 에러였다.
   - 마찬가지로 이름을 'admin'으로 바꿔주니 연결이 잘 된 것을 확인할 수 있었다.
   - 내가 입력한 정보를 잘 기억해야겠다고 다시한번 다짐했다...ㅎㅎ
+
+#### docker-compose.yml
+- 로컬 개발 및 테스트 환경에서 사용되는 Docker Compose 설정 파일이다. 
+- 이 파일은 개발자는 로컬 환경에서 docker-compose.yml 파일을 사용하여 개발 및 테스트를 수행할 때 사용된다. 
+- 어떻게 실행?
+- 이 파일은 터미널에서 우리가 `docker-compose -f docker-compose.yml up --build` 명령어를 통해 실행해주어야 한다!
+
+#### docker-compose.prod.yml
+- docker-compose.prod.yml 파일은 배포 환경에서 사용되는 Docker Compose 설정 파일이다.
+- 실제 운영 환경에서 애플리케이션을 **배포하고 실행할 때 사용**된다.
+- 어떻게 실행?
+- 이 파일은 Github Actions가 실행시켜준다! 
+- `config/scripts/deploy.sh` 의 맨 아래에 있는 결국 우리가 실행시켜야하는 명령어인
+- `sudo docker-compose -f /home/ubuntu/srv/ubuntu/docker-compose.prod.yml up --build -d`로부터 실행이 된다.
+
+#### 이 둘은 어떤 연관이 있을까?
+- 이름이 비슷해서 뭔가 연관이 있을 줄 알았지만, 사실 직접적인 연관은 없다.
+- 위 언급대로, docker-compose.yml은 로컬환경에서
+- docker-compose.prod.yml은 배포환경에 사용된다.
+
+#### django에서의 서버 배포 흐름에 대하여
+![server](https://github.com/CEOS-Developers/django_rest_framework_17th/assets/81136546/755cbb8e-0cc7-4fba-8586-72d219553d3b)
+- 클라이언트가 Nginx 서버로 HTTP 요청을 전송하면,
+- Nginx 서버는 수신한 요청을 받아들이고, 그 요청을 Gunicorn으로 전달한다.
+- Gunicorn은 Django 애플리케이션을 실행하는 역할을 한다.
+- Django 애플리케이션은 Gunicorn에서 요청을 받아들이고, 요청을 처리하여 필요한 응답을 생성한 다음
+- Gunicorn은 Django 애플리케이션에서 받은 응답을 다시 Nginx로 전달한다.
+- Nginx는 최종적으로 응답을 클라이언트에게 반환하여 요청에 대한 응답을 제공합니다.
+- 이러한 과정은 **AWS EC2 인스턴스** 내에서 일어난다.
+
+#### gunicorn과 nginx
+1. gunicorn
+- Github Actions이 실행해주는 docker-compose.prod.yml파일에 있는 
+- `command: gunicorn django_docker.wsgi:application --bind 0.0.0.0:8000` 에 의해 
+- Gunicorn이 Django 애플리케이션을 실행하고
+- 웹 서버(nginx)와 애플리케이션(django) 사이의 표준화된 통신 프로토콜인 WSGI를 사용하여 원활한 상호작용이 가능을 하게 해준다.
+
+2. nginx
+- 웹 서버로서 역할
+
+#### 느낀 점
+
+- 처음 과제를 읽었을 때 모르는 용어가 대부분이라 어디서부터 어떻게 해야할지 너무 막막했다...
+- 그래도 과제를 끝내고 리드미를 쓰면서 다시 배포 흐름에 대해서 공부를 하다보니 아주 조금은 알 것 같기도 하다ㅎㅎㅎ
+- 어차피 프로젝트할 때 배포해야하니 앞으로 더 자세히 알아보고 공부해야겠다고 생각했당
