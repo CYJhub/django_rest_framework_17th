@@ -20,7 +20,7 @@ class BoardList(APIView):
             serializer = BoardSerializer(board_list, many=True)
             return Response(serializer.data)
         except AttributeError as e:
-            print(e)
+            print(e).
             return Response("message: error")
 
     def post(self, request):
