@@ -636,8 +636,35 @@ ERROR: `Cannot Connect to Database Server`
   - 마찬가지로 이름을 'admin'으로 바꿔주니 연결이 잘 된 것을 확인할 수 있었다.
   - 내가 입력한 정보를 잘 기억해야겠다고 다시한번 다짐했다...ㅎㅎ
 
+#### docker란?
+- 개발용 컴퓨터와 서버용 컴퓨터에 같은 환경을 만들어주는 도구이다.
+- 여기서 같은 환경이란?
+  - 컨테이너화 시킨다는 의미 => 서로 다른 환경을 분리할 수 있음
+  - 각각의 컨테이너를 도커 컨테이너라고 부른다. 
+- 도커 컨테이너는 도커에서 실행되는 하나의 유닛이다.
+- docker는 Dockerfile를 실행시킨다.
+- 
+#### Dockerfile이란?
+- 이미지를 만들기 위한 설계도 <- 이미지란, 컴퓨터의 특정 상태를 캡쳐해서 박제해놨다는 뜻
+- 도커에서 어떻게 실행될지 설정이 되어있다.
+```python
+# pyhton 3.8.3 버전을 담은 이미지를 개조해서 사용할 예정
+FROM python:3.8.3-alpine
+ENV PYTHONUNBUFFERED 1
+```
+
 #### docker-compose.yml
-- 로컬 개발 및 테스트 환경에서 사용되는 Docker Compose 설정 파일이다. 
+- 거시적 설계도 -> 여러개의 컨테이너를 정의하고 구성함
+- ```service```섹션을 사용해서 각각 하나의 컨테이너를 정의할 수 있다!
+```python
+services:
+
+  db:
+    container_name: db
+    image: mysql:5.7 #window
+  ...
+```
+- MySQL 5.7 이미지를 사용하여 컨테이너를 생성한다는 의미이다.
 - 이 파일은 개발자는 로컬 환경에서 docker-compose.yml 파일을 사용하여 개발 및 테스트를 수행할 때 사용된다. 
 - 어떻게 실행?
 - 이 파일은 터미널에서 우리가 `docker-compose -f docker-compose.yml up --build` 명령어를 통해 실행해주어야 한다!
