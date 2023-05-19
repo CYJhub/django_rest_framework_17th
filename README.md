@@ -710,7 +710,36 @@ services:
 
 ## 6주차 : AWS : https 인증
 
-### HTTPS란?
+### HTTP와 HTTPS
+- HTTP는 인터넷에서 웹 브라우저와 웹 서버 간의 데이터 전송을 위한 프로토콜
+- 데이터를 전송할 때, 기본적으로 평문으로 데이터를 전송하므로 보안성이 보장되지 않는다.
+- 이러한 문제를 HTTPS가 보완한다.
+- 기본적인 HTTP에 더해 **데이터의 암호화와 인증**을 추가로 제공한다.
 
-- 
+### HTTPS 구현 과정
 
+1. SSL/TLS 인증서 준비: AWS의 Certificate Manager에서 원하는 도메인에 대한 SSL 인증서를 받는다.
+2. ALB에 SSL/TLS 인증서 연결: 위에서 연결한 인증서를 ALB에 연결한다. 
+3. 리스너 구성: 클라이언트의 요청을 받을 포트 (443 포트) 및 프로토콜 (HTTPS)를 지정한다. 
+4. 대상 그룹 설정: 리스너가 수신한 요청을 처리할 대상 그룹을 설정한다.
+
+- HTTP 요청은 포트 80을 통해 전달될 수 있으며, HTTPS 요청은 **포트 443**을 통해 전달된다.
+- ALB를 통해 SSL/TLS 인증서를 추가함으로써 HTTPS 요청을 처리할 수 있게 되는 것!
+
+### 과제를 하며...
+- 일단 첫번째로 도메인을 생성해주었습니다.
+![domain](https://github.com/CEOS-Developers/django_rest_framework_17th/assets/81136546/0d50499c-af9f-4011-b931-49bd59ded2b8)
+- 그 후 과제 노션에 나와있는대로 SSL인증서 요청받고,
+- 대상 그룹, 로드 밸런서 등등 잘 따라하며 생성 및 연결도 완료했습니다.
+- 정말 이때까지는 노션만 잘 따라하면 과제를 성공적으로 마칠 수 있을 줄 알았습니다ㅜ
+- 그런데, 깃헙 액션으로 내가 만든 도메인으로 배포를 해보니....
+![error](https://github.com/CEOS-Developers/django_rest_framework_17th/assets/81136546/4967a8f7-793c-4280-8ba2-74a72ed48e93)
+- 정말 다시는 보기도 싫은 이 에러를 마주쳤고, 본격적으로 에러를 해결해보려 했습니다ㅜㅡㅜ
+![proxy](https://github.com/CEOS-Developers/django_rest_framework_17th/assets/81136546/c2489be5-e057-465c-8992-166e33422024)
+- 과제에 [선택]이라고 쓰여있던 nginx 리다이렉션 로직도 추가하고
+- 프록시 설정도 다시 해줬습니다.
+- 그런데 에러는 똑같았습니다.
+- 계속 구글링을 하다가 gunicorn 시간 초과 관련일수도 있다고 해서, gunicorn timeout 설정도 추가했습니다.
+- ```command: gunicorn django_rest_framework_17th.wsgi:application --bind 0.0.0.0:8000 --timeout=120```
+- 그런데도 계속 에러는 같았습니다.........ㅎ
+- 정확한 에러 로그를 알려주지 않아서 정말 어디서부터 어디까지 잘못된건지(?) 모르는 상태에서 구글링만으로 에러를 해결하려니 정말 막막했습니다ㅠ
